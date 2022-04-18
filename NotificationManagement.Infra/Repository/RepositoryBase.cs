@@ -18,6 +18,7 @@ namespace NotificationManagement.Infra.Repository
         {
             _dbContext = dbContext;
         }
+
         public async Task CreateAsync(T entity)
         {
             await _dbContext.AddAsync(entity);
@@ -43,9 +44,13 @@ namespace NotificationManagement.Infra.Repository
 
         public async Task<ICollection<T>> GetAllAsync(int? recordsPerPage, int? pageNumber)
         {
-            var skipRegisters = ((pageNumber ?? 1) - 1) * (recordsPerPage ?? 10);
+            if (recordsPerPage != null && pageNumber != null)
+            {
+                return await _dbContext.Set<T>().Skip((pageNumber.Value - 1) * recordsPerPage.Value)
+                    .Take(recordsPerPage.Value).ToListAsync();
+            }
 
-            return await _dbContext.Set<T>().Skip(skipRegisters).Take(recordsPerPage ?? 10).ToListAsync();
+            return await _dbContext.Set<T>().ToListAsync();
         }
     }
 }
